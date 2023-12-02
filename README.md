@@ -35,7 +35,9 @@ public class GameManager : MonoBehaviour
 You can access the singleton by using the `Singleton` class.
 
 ```csharp
-Singleton.Get<GameManager>().AddScore(10);
+using Kekser.PowerSingleton;
+
+Singleton<GameManager>.Instance.AddScore(10);
 ```
 ### Interface
 
@@ -64,7 +66,7 @@ public class GameManager : MonoBehaviour, IGamemanager
 }
 ```
 ```csharp
-Singleton.Get<IGamemanager>().AddScore(10);
+Singleton<IGameManager>.Instance.AddScore(10);
 ```
 ### If Needed Creation
 
@@ -88,7 +90,7 @@ public class GameManager : MonoBehaviour
 }
 ```
 ```csharp
-Singleton.Get<GameManager>().AddScore(10);
+Singleton<GameManager>.Instance.AddScore(10);
 ```
 ### Auto Creation
 
@@ -112,7 +114,7 @@ public class GameManager : MonoBehaviour
 }
 ```
 ```csharp
-Singleton.Get<GameManager>().AddScore(10);
+Singleton<GameManager>.Instance.AddScore(10);
 ```
 ### DontDestroyOnLoad
 
@@ -134,7 +136,7 @@ public class GameManager : MonoBehaviour
 }
 ```
 ```csharp
-Singleton.Get<GameManager>().AddScore(10);
+Singleton<GameManager>.Instance.AddScore(10);
 ```
 ### Install via git URL
 
