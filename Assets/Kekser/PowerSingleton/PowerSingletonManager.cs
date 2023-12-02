@@ -18,7 +18,7 @@ namespace Kekser.PowerSingleton
             public bool DontDestroyOnLoad;
         }
         
-        private static Dictionary<Type, PowerSingletonData> _powerSingletons = new Dictionary<Type, PowerSingletonData>();
+        private static Dictionary<Type, List<PowerSingletonData>> _powerSingletons = new Dictionary<Type, List<PowerSingletonData>>();
         private static Dictionary<Type, Object> _cachedSingletons = new Dictionary<Type, Object>();
         private static bool _initialized;
         
@@ -60,17 +60,15 @@ namespace Kekser.PowerSingleton
                     }
                     
                     PowerSingletonAttribute attribute = (PowerSingletonAttribute) attributes[0];
-                    if (!_powerSingletons.TryAddToDictionary(attribute.Type, new PowerSingletonData
+                    _powerSingletons.TryAddToDictionary(attribute.Type, new List<PowerSingletonData>());
+                    _powerSingletons[attribute.Type].Add(new PowerSingletonData
                     {
                         GenericType = attribute.Type,
                         Type = type,
                         Creation = attribute.Creation,
                         CreationName = attribute.CreationName,
                         DontDestroyOnLoad = attribute.DontDestroyOnLoad
-                    }))
-                    {
-                        Debug.LogError($"PowerSingletonManager: Duplicate PowerSingletonAttribute for type {attribute.Type}");
-                    }
+                    });
                 }
             }
             
@@ -79,12 +77,15 @@ namespace Kekser.PowerSingleton
 
         private static void AutoCreate()
         {
-            foreach (KeyValuePair<Type, PowerSingletonData> powerSingleton in _powerSingletons)
+            foreach (KeyValuePair<Type, List<PowerSingletonData>> powerSingleton in _powerSingletons)
             {
-                if (powerSingleton.Value.Creation != PowerSingletonCreation.Always)
-                    continue;
-                
-                Get(powerSingleton.Key);
+                foreach (PowerSingletonData data in powerSingleton.Value)
+                {
+                    if (data.Creation != PowerSingletonCreation.Always)
+                        continue;
+                    Get(powerSingleton.Key);
+                    break;
+                }
             }
         }
 
@@ -106,11 +107,35 @@ namespace Kekser.PowerSingleton
                 _cachedSingletons.TryAddToDictionary(type, instance);
                 return instance;
             }
+
+            PowerSingletonData data = default;
+            foreach (PowerSingletonData psData in _powerSingletons[type])
+            {
+                instance = Object.FindObjectOfType(psData.Type);
+                if (instance == null)
+                    continue;
+                data = psData;
+                break;
+            }
             
-            PowerSingletonData data = _powerSingletons[type];
-            instance = Object.FindObjectOfType(data.Type);
-            if (instance == null && data.Creation != PowerSingletonCreation.None)
-                instance = new GameObject(data.CreationName ?? data.Type.Name).AddComponent(data.Type);
+            if (instance == null)
+            {
+                foreach (PowerSingletonData psData in _powerSingletons[type])
+                {
+                    if (psData.Creation == PowerSingletonCreation.None)
+                        continue;
+                    instance = new GameObject(psData.CreationName ?? psData.Type.Name).AddComponent(psData.Type);
+                    data = psData;
+                    break;
+                }
+            }
+            
+            if (instance == null)
+            {
+                Debug.LogError($"PowerSingletonManager: No PowerSingletonAttribute for type {type}, and no instance in scene");
+                return null;
+            }
+            
             _cachedSingletons.TryAddToDictionary(type, instance);
             if (data.DontDestroyOnLoad)
                 Object.DontDestroyOnLoad(instance);
