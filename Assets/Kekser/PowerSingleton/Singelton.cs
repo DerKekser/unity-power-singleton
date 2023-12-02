@@ -1,6 +1,6 @@
 ﻿using Object = UnityEngine.Object;
 
-namespace Game.Scripts.PowerSingleton
+namespace Kekser.PowerSingleton
 {
     public static class Single<T> where T : Object
     {

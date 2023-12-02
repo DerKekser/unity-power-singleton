@@ -1,0 +1,12 @@
+{
+    "name": "com.kekser.powersingleton",
+    "displayName": "PowerSingleton",
+    "author": { "name": "Kekser", "url": "https://github.com/DerKekser" },
+    "version": "1.0.0",
+    "unity": "2020.3",
+    "description": "A simple singleton system for Unity",
+    "keywords": [ "singleton" ],
+    "license": "MIT",
+    "category": "Task",
+    "dependencies": {}
+}

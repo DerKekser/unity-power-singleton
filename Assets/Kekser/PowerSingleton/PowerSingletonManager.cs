@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Game.Scripts.PowerSingleton.Attributes;
+using Kekser.PowerSingleton.Attributes;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Game.Scripts.PowerSingleton
+namespace Kekser.PowerSingleton
 {
     public static class PowerSingletonManager
     {

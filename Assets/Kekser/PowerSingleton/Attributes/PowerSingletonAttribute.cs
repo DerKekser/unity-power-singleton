@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Game.Scripts.PowerSingleton.Attributes
+namespace Kekser.PowerSingleton.Attributes
 {
     public enum PowerSingletonCreation
     {
