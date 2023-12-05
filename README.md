@@ -32,12 +32,12 @@ public class GameManager : MonoBehaviour
     // ...
 }
 ```
-You can access the singleton by using the `Singleton` class.
+You can access the singleton by using the `Single` class.
 
 ```csharp
 using Kekser.PowerSingleton;
 
-Singleton<GameManager>.Instance.AddScore(10);
+Single<GameManager>.Instance.AddScore(10);
 ```
 ### Interface
 
@@ -65,11 +65,11 @@ public class GameManager : MonoBehaviour, IGameManager
     // ...
 }
 ```
-You can access the singleton by using the `Singleton` class and specifying the interface.
+You can access the singleton by using the `Single` class and specifying the interface.
 ```csharp
 using Kekser.PowerSingleton;
 
-Singleton<IGameManager>.Instance.AddScore(10);
+Single<IGameManager>.Instance.AddScore(10);
 ```
 ### If Needed Creation
 
