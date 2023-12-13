@@ -19,14 +19,18 @@ namespace Kekser.PowerSingleton
         }
         
         private static Dictionary<Type, List<PowerSingletonData>> _powerSingletons = new Dictionary<Type, List<PowerSingletonData>>();
-        private static Dictionary<Type, Object> _cachedSingletons = new Dictionary<Type, Object>();
         private static bool _initialized;
         
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Initialize()
         {
+            if (_initialized)
+                return;
+
             LookUpAttributes();
             AutoCreate();
+            
+            _initialized = true;
         }
         
         private static bool TryAddToDictionary<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue value)
@@ -37,11 +41,9 @@ namespace Kekser.PowerSingleton
             return true;
         }
 
+        //TODO: Add IL Weaving to automatically call this method
         private static void LookUpAttributes()
         {
-            if (_initialized)
-                return;
-            
             Assembly[] types = AppDomain.CurrentDomain.GetAssemblies();
             foreach (Assembly assembly in types)
             {
@@ -71,8 +73,6 @@ namespace Kekser.PowerSingleton
                     });
                 }
             }
-            
-            _initialized = true;
         }
 
         private static void AutoCreate()
@@ -91,9 +91,6 @@ namespace Kekser.PowerSingleton
 
         public static Object Get(Type type)
         {
-            if (_cachedSingletons.ContainsKey(type) && _cachedSingletons[type] != null)
-                return _cachedSingletons[type];
-
             Object instance = null;
             if (!_powerSingletons.ContainsKey(type))
             {
@@ -104,7 +101,6 @@ namespace Kekser.PowerSingleton
                     return null;
                 }
                 Debug.LogWarning($"PowerSingletonManager: No PowerSingletonAttribute for type {type}, but found instance in scene");
-                _cachedSingletons.TryAddToDictionary(type, instance);
                 return instance;
             }
 
@@ -136,7 +132,6 @@ namespace Kekser.PowerSingleton
                 return null;
             }
             
-            _cachedSingletons.TryAddToDictionary(type, instance);
             if (data.DontDestroyOnLoad)
                 Object.DontDestroyOnLoad(instance);
             return instance;
