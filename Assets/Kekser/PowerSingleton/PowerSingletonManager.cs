@@ -9,6 +9,10 @@ namespace Kekser.PowerSingleton
 {
     public static class PowerSingletonManager
     {
+        private const string PowerSingletonNoMonoBehaviour = "PowerSingletonManager: Type {0} is not a MonoBehaviour";
+        private const string NoPowerSingletonAttribute = "PowerSingletonManager: No PowerSingletonAttribute for type {0}, and no instance in scene";
+        private const string NoPowerSingletonAttributeButInstanceInScene = "PowerSingletonManager: No PowerSingletonAttribute for type {0}, but found instance in scene";
+        
         private struct PowerSingletonData
         {
             public Type GenericType;
@@ -57,7 +61,7 @@ namespace Kekser.PowerSingleton
                     
                     if (!type.IsSubclassOf(typeof(MonoBehaviour)))
                     {
-                        Debug.LogError($"PowerSingletonManager: Type {type} is not a MonoBehaviour");
+                        Debug.LogErrorFormat(PowerSingletonNoMonoBehaviour, type);
                         continue;
                     }
                     
@@ -97,10 +101,10 @@ namespace Kekser.PowerSingleton
                 instance = Object.FindObjectOfType(type);
                 if (instance == null)
                 {
-                    Debug.LogError($"PowerSingletonManager: No PowerSingletonAttribute for type {type}, and no instance in scene");
+                    Debug.LogErrorFormat(NoPowerSingletonAttribute, type);
                     return null;
                 }
-                Debug.LogWarning($"PowerSingletonManager: No PowerSingletonAttribute for type {type}, but found instance in scene");
+                Debug.LogWarningFormat(NoPowerSingletonAttributeButInstanceInScene, type);
                 return instance;
             }
 
@@ -128,7 +132,7 @@ namespace Kekser.PowerSingleton
             
             if (instance == null)
             {
-                Debug.LogError($"PowerSingletonManager: No PowerSingletonAttribute for type {type}, and no instance in scene");
+                Debug.LogErrorFormat(NoPowerSingletonAttribute, type);
                 return null;
             }
             
