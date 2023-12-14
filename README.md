@@ -4,24 +4,26 @@
 
 ## Contents
 - [Simple Example](#simple-example)
-- [Interface](#interface)
-- [If Needed Creation](#if-needed-creation)
-- [Auto Creation](#auto-creation)
+- [Interface / Abstract Class](#interface--abstract-class)
+- [Creation](#creation)
+    - [If Needed Creation](#if-needed-creation)
+    - [Auto Creation](#auto-creation)
 - [DontDestroyOnLoad](#dontdestroyonload)
-- [Install via git URL](#install-via-git-url)
+- [Install](#install)
+    - [Install via Unity Package](#install-via-unity-package)
+    - [Install via git URL](#install-via-git-url)
 - [License](#license)
 
 ### Simple Example
 
 You can define a singleton by adding the `PowerSingleton` attribute to a class.
 The class must inherit from `MonoBehaviour` and the attribute must be applied to the class.
-The type of the singleton must be specified in the attribute.
 
 ```csharp
 using Kekser.PowerSingleton.Attributes;
 using UnityEngine;
 
-[PowerSingleton(typeof(GameManager))]
+[PowerSingleton]
 public class GameManager : MonoBehaviour
 {
     public void AddScore(int score)
@@ -39,9 +41,9 @@ using Kekser.PowerSingleton;
 
 Single<GameManager>.Instance.AddScore(10);
 ```
-### Interface
+### Interface / Abstract Class
 
-You can also define a singleton by an interface.
+You can also define a singleton by an interface or an abstract class.
 This widened flexibility allows you to use multiple Singleton classes, given they implement the specified interface. The system intuitively chooses the active class in the current scene.
 
 ```csharp
@@ -71,7 +73,9 @@ using Kekser.PowerSingleton;
 
 Single<IGameManager>.Instance.AddScore(10);
 ```
-### If Needed Creation
+### Creation
+
+#### If Needed Creation
 
 You can define that the singleton should only be created when it is needed.
 This is useful if you want to use the singleton in a scene where it is not yet present.
@@ -92,7 +96,7 @@ public class GameManager : MonoBehaviour
     // ...
 }
 ```
-### Auto Creation
+#### Auto Creation
 
 You can define that the singleton should be created automatically.
 This is useful if you want to use the singleton in a scene where it is not yet present.
@@ -132,7 +136,12 @@ public class GameManager : MonoBehaviour
     // ...
 }
 ```
-### Install via git URL
+### Install
+
+#### Install via Unity Package
+
+Download the latest [release](/releases) and import the package into your Unity project.
+#### Install via git URL
 
 You can add this package to your project by adding this git URL in the Package Manager:
 ```
