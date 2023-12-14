@@ -66,10 +66,11 @@ namespace Kekser.PowerSingleton
                     }
                     
                     PowerSingletonAttribute attribute = (PowerSingletonAttribute) attributes[0];
-                    _powerSingletons.TryAddToDictionary(attribute.Type, new List<PowerSingletonData>());
-                    _powerSingletons[attribute.Type].Add(new PowerSingletonData
+                    Type attributeType = attribute.Type ?? type;
+                    _powerSingletons.TryAddToDictionary(attributeType, new List<PowerSingletonData>());
+                    _powerSingletons[attributeType].Add(new PowerSingletonData
                     {
-                        GenericType = attribute.Type,
+                        GenericType = attributeType,
                         Type = type,
                         Creation = attribute.Creation,
                         CreationName = attribute.CreationName,
