@@ -140,7 +140,7 @@ public class GameManager : MonoBehaviour
 
 #### Install via Unity Package
 
-Download the latest [release](/releases) and import the package into your Unity project.
+Download the latest [release](https://github.com/DerKekser/unity-power-singleton/releases) and import the package into your Unity project.
 #### Install via git URL
 
 You can add this package to your project by adding this git URL in the Package Manager:
