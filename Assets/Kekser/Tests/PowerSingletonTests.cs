@@ -99,6 +99,18 @@ public class PowerSingletonTests
         Assert.IsNull(Single<DefaultSingleton>.Instance);
         LogAssert.Expect(LogType.Error, "PowerSingletonManager: No PowerSingletonAttribute for type Kekser.Tests.DefaultSingleton, and no instance in scene");
     }
+    
+    [UnityTest]
+    [LoadScene("Assets/Kekser/Tests/Scenes/PowerSingletonTestScene.unity")]
+    public IEnumerator TestBindSingleton()
+    {
+        yield return null;
+        Assert.IsFalse(BindSingleton.Created);
+        Single<BindSingleton>.Bind(new GameObject("BindSingleton").AddComponent<BindSingleton>());
+        yield return null;
+        Assert.IsTrue(BindSingleton.Created);
+        Assert.IsNotNull(Single<BindSingleton>.Instance);
+    }
 }
 
 public class LoadSceneAttribute : NUnitAttribute, IOuterUnityTestAction

@@ -11,10 +11,15 @@ namespace Kekser.PowerSingleton
             get
             {
                 if (_rawInstance != null) return _instance;
-                _rawInstance = PowerSingletonManager.Get(typeof(T));
-                _instance = _rawInstance as T;
+                Bind(PowerSingletonManager.Get(typeof(T)));
                 return _instance;
             }
+        }
+        
+        public static void Bind(Object instance)
+        {
+            _rawInstance = instance;
+            _instance = instance as T;
         }
     }
 }

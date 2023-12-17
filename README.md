@@ -9,6 +9,7 @@
     - [If Needed Creation](#if-needed-creation)
     - [Auto Creation](#auto-creation)
 - [DontDestroyOnLoad](#dontdestroyonload)
+- [Manual Binding](#manual-binding)
 - [Install](#install)
     - [Install via Unity Package](#install-via-unity-package)
     - [Install via git URL](#install-via-git-url)
@@ -135,6 +136,17 @@ public class GameManager : MonoBehaviour
     
     // ...
 }
+```
+### Manual Binding
+
+You can manually bind a MonoBehaviour to a singleton.
+This is useful if you cannot use the `PowerSingleton` attribute or if you want to change the singleton at runtime.
+
+```csharp
+using Kekser.PowerSingleton;
+
+GameManager gameManager = new GameObject("GameManager").AddComponent<GameManager>();
+Single<GameManager>.Bind(gameManager);
 ```
 ### Install
 
