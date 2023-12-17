@@ -10,7 +10,7 @@ namespace Kekser.PowerSingleton
 {
     public static class PowerSingletonManager
     {
-        private const string AssembliesToIgnoreRegex = @"^Unity\.|^UnityEngine\.|^mscorlib|^System\.|^Mono\.";
+        private const string AssembliesToIgnoreRegex = @"^Unity|^UnityEngine|^mscorlib|^System|^Mono";
         
         private const string PowerSingletonNoMonoBehaviour = "PowerSingletonManager: Type {0} is not a MonoBehaviour";
         private const string NoPowerSingletonAttribute = "PowerSingletonManager: No PowerSingletonAttribute for type {0}, and no instance in scene";
