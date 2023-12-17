@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Kekser.PowerSingleton.Attributes;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -9,6 +10,8 @@ namespace Kekser.PowerSingleton
 {
     public static class PowerSingletonManager
     {
+        private const string AssembliesToIgnoreRegex = @"^Unity\.|^UnityEngine\.|^mscorlib|^System\.|^Mono\.";
+        
         private const string PowerSingletonNoMonoBehaviour = "PowerSingletonManager: Type {0} is not a MonoBehaviour";
         private const string NoPowerSingletonAttribute = "PowerSingletonManager: No PowerSingletonAttribute for type {0}, and no instance in scene";
         private const string NoPowerSingletonAttributeButInstanceInScene = "PowerSingletonManager: No PowerSingletonAttribute for type {0}, but found instance in scene";
@@ -26,15 +29,18 @@ namespace Kekser.PowerSingleton
         private static bool _initialized;
         
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void Initialize()
+        public static void Initialize()
         {
-            if (_initialized)
-                return;
-
-            LookUpAttributes();
+            if (!_initialized)
+            {
+                LookUpAttributes();
+                UnityEngine.SceneManagement.SceneManager.activeSceneChanged += (arg0, arg1) =>
+                {
+                    Initialize();
+                };
+                _initialized = true;
+            }
             AutoCreate();
-            
-            _initialized = true;
         }
         
         private static bool TryAddToDictionary<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue value)
@@ -51,7 +57,7 @@ namespace Kekser.PowerSingleton
             Assembly[] types = AppDomain.CurrentDomain.GetAssemblies();
             foreach (Assembly assembly in types)
             {
-                if (!assembly.FullName.StartsWith("Assembly-CSharp"))
+                if (Regex.IsMatch(assembly.FullName, AssembliesToIgnoreRegex))
                     continue;
 
                 foreach (Type type in assembly.GetTypes())
@@ -89,7 +95,6 @@ namespace Kekser.PowerSingleton
                     if (data.Creation != PowerSingletonCreation.Always)
                         continue;
                     Get(powerSingleton.Key);
-                    break;
                 }
             }
         }
@@ -99,6 +104,12 @@ namespace Kekser.PowerSingleton
             Object instance = null;
             if (!_powerSingletons.ContainsKey(type))
             {
+                if (!type.IsSubclassOf(typeof(MonoBehaviour)))
+                {
+                    Debug.LogErrorFormat(PowerSingletonNoMonoBehaviour, type);
+                    return null;
+                }
+                
                 instance = Object.FindObjectOfType(type);
                 if (instance == null)
                 {
