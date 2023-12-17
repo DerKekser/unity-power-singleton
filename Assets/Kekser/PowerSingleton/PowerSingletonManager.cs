@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Kekser.PowerSingleton.Attributes;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace Kekser.PowerSingleton
 {
     public static class PowerSingletonManager
     {
-        private const string AssembliesToIgnoreRegex = @"^Unity|^UnityEngine|^mscorlib|^System|^Mono";
+        private const string AssembliesToIgnoreRegex = "^Unity|^UnityEngine|^mscorlib|^System|^Mono";
         
         private const string PowerSingletonNoMonoBehaviour = "PowerSingletonManager: Type {0} is not a MonoBehaviour";
         private const string NoPowerSingletonAttribute = "PowerSingletonManager: No PowerSingletonAttribute for type {0}, and no instance in scene";
@@ -25,7 +27,7 @@ namespace Kekser.PowerSingleton
             public bool DontDestroyOnLoad;
         }
         
-        private static Dictionary<Type, List<PowerSingletonData>> _powerSingletons = new Dictionary<Type, List<PowerSingletonData>>();
+        private static readonly Dictionary<Type, List<PowerSingletonData>> _powerSingletons = new Dictionary<Type, List<PowerSingletonData>>();
         private static bool _initialized;
         
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -34,10 +36,7 @@ namespace Kekser.PowerSingleton
             if (!_initialized)
             {
                 LookUpAttributes();
-                UnityEngine.SceneManagement.SceneManager.activeSceneChanged += (arg0, arg1) =>
-                {
-                    Initialize();
-                };
+                SceneManager.activeSceneChanged += (arg0, arg1) => Initialize();
                 _initialized = true;
             }
             AutoCreate();
@@ -49,6 +48,20 @@ namespace Kekser.PowerSingleton
                 return false;
             dictionary.Add(key, value);
             return true;
+        }
+        
+        private static bool TryToFindObjectOfType(Type type, out Object instance)
+        {
+            instance = Object.FindObjectOfType(type);
+            return instance != null;
+        }
+        
+        private static bool CheckType(Type type)
+        {
+            if(type.IsSubclassOf(typeof(MonoBehaviour)))
+                return true;
+            Debug.LogErrorFormat(PowerSingletonNoMonoBehaviour, type);
+            return false;
         }
 
         //TODO: Add IL Weaving to automatically call this method
@@ -63,13 +76,8 @@ namespace Kekser.PowerSingleton
                 foreach (Type type in assembly.GetTypes())
                 {
                     var attributes = type.GetCustomAttributes(typeof(PowerSingletonAttribute), false);
-                    if (attributes.Length <= 0) continue;
-                    
-                    if (!type.IsSubclassOf(typeof(MonoBehaviour)))
-                    {
-                        Debug.LogErrorFormat(PowerSingletonNoMonoBehaviour, type);
+                    if (attributes.Length == 0 || !CheckType(type))
                         continue;
-                    }
                     
                     PowerSingletonAttribute attribute = (PowerSingletonAttribute) attributes[0];
                     Type attributeType = attribute.Type ?? type;
@@ -90,12 +98,8 @@ namespace Kekser.PowerSingleton
         {
             foreach (KeyValuePair<Type, List<PowerSingletonData>> powerSingleton in _powerSingletons)
             {
-                foreach (PowerSingletonData data in powerSingleton.Value)
-                {
-                    if (data.Creation != PowerSingletonCreation.Always)
-                        continue;
+                if (powerSingleton.Value.Any(data => data.Creation == PowerSingletonCreation.Always))
                     Get(powerSingleton.Key);
-                }
             }
         }
 
@@ -104,14 +108,10 @@ namespace Kekser.PowerSingleton
             Object instance = null;
             if (!_powerSingletons.ContainsKey(type))
             {
-                if (!type.IsSubclassOf(typeof(MonoBehaviour)))
-                {
-                    Debug.LogErrorFormat(PowerSingletonNoMonoBehaviour, type);
+                if (!CheckType(type))
                     return null;
-                }
                 
-                instance = Object.FindObjectOfType(type);
-                if (instance == null)
+                if (!TryToFindObjectOfType(type, out instance))
                 {
                     Debug.LogErrorFormat(NoPowerSingletonAttribute, type);
                     return null;
@@ -120,32 +120,17 @@ namespace Kekser.PowerSingleton
                 return instance;
             }
 
-            PowerSingletonData data = default;
-            foreach (PowerSingletonData psData in _powerSingletons[type])
-            {
-                instance = Object.FindObjectOfType(psData.Type);
-                if (instance == null)
-                    continue;
-                data = psData;
-                break;
-            }
+            PowerSingletonData data = _powerSingletons[type].FirstOrDefault(psData => TryToFindObjectOfType(psData.Type, out instance));
             
             if (instance == null)
             {
-                foreach (PowerSingletonData psData in _powerSingletons[type])
+                data = _powerSingletons[type].FirstOrDefault(psData => psData.Creation != PowerSingletonCreation.None);
+                if (data.Creation == PowerSingletonCreation.None)
                 {
-                    if (psData.Creation == PowerSingletonCreation.None)
-                        continue;
-                    instance = new GameObject(psData.CreationName ?? psData.Type.Name).AddComponent(psData.Type);
-                    data = psData;
-                    break;
+                    Debug.LogErrorFormat(NoPowerSingletonAttribute, type);
+                    return null;
                 }
-            }
-            
-            if (instance == null)
-            {
-                Debug.LogErrorFormat(NoPowerSingletonAttribute, type);
-                return null;
+                instance = new GameObject(data.CreationName ?? data.Type.Name).AddComponent(data.Type);
             }
             
             if (data.DontDestroyOnLoad)
