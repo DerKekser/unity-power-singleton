@@ -38,6 +38,7 @@ public class PowerSingletonTests
         yield return null;
         Assert.IsFalse(IfNeededSingleton.Created);
         Assert.IsNotNull(Single<IfNeededSingleton>.Instance);
+        Assert.AreEqual("IfNeededSingleton", Single<IfNeededSingleton>.Instance.name);
     }
     
     [UnityTest]
@@ -47,6 +48,7 @@ public class PowerSingletonTests
         yield return null;
         Assert.IsTrue(AlwaysSingleton.Created);
         Assert.IsNotNull(Single<AlwaysSingleton>.Instance);
+        Assert.AreEqual("AlwaysSingleton", Single<AlwaysSingleton>.Instance.name);
     }
     
     [UnityTest]
@@ -115,14 +117,14 @@ public class PowerSingletonTests
 
 public class LoadSceneAttribute : NUnitAttribute, IOuterUnityTestAction
 {
-    private string scene;
+    private string _scene;
  
-    public LoadSceneAttribute(string scene) => this.scene = scene;
+    public LoadSceneAttribute(string scene) => this._scene = scene;
  
     IEnumerator IOuterUnityTestAction.BeforeTest(ITest test)
     {
-        Debug.Assert(scene.EndsWith(".unity"));
-        yield return EditorSceneManager.LoadSceneAsyncInPlayMode(scene, new LoadSceneParameters(LoadSceneMode.Single));
+        Debug.Assert(_scene.EndsWith(".unity"));
+        yield return EditorSceneManager.LoadSceneAsyncInPlayMode(_scene, new LoadSceneParameters(LoadSceneMode.Single));
     }
  
     IEnumerator IOuterUnityTestAction.AfterTest(ITest test)
