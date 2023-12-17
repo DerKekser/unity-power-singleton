@@ -1,0 +1,21 @@
+{
+    "name": "Unity.PowerSingletonWeaver.CodeGen",
+    "rootNamespace": "",
+    "references": [
+        "GUID:748f77c72371e664e88907782f4fa51b"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Mono.Cecil.dll",
+        "Mono.Cecil.Rocks.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

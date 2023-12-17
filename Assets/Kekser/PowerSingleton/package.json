@@ -8,5 +8,7 @@
     "keywords": [ "singleton" ],
     "license": "MIT",
     "category": "Task",
-    "dependencies": {}
+    "dependencies": {
+        "com.unity.nuget.mono-cecil": "1.11.4"
+    }
 }

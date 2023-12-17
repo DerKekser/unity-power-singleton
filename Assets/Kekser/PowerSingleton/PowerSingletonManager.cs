@@ -9,7 +9,7 @@ namespace Kekser.PowerSingleton
 {
     public static class PowerSingletonManager
     {
-        private const string PowerSingletonNoMonoBehaviour = "PowerSingletonManager: Type {0} is not a MonoBehaviour";
+        private const string TypesNull = "PowerSingletonManager: Types array is null! Weaving failed!";
         private const string NoPowerSingletonAttribute = "PowerSingletonManager: No PowerSingletonAttribute for type {0}, and no instance in scene";
         private const string NoPowerSingletonAttributeButInstanceInScene = "PowerSingletonManager: No PowerSingletonAttribute for type {0}, but found instance in scene";
         
@@ -22,12 +22,20 @@ namespace Kekser.PowerSingleton
             public bool DontDestroyOnLoad;
         }
         
+        private static Type[] _types = new Type[] {};
+        
         private static Dictionary<Type, List<PowerSingletonData>> _powerSingletons = new Dictionary<Type, List<PowerSingletonData>>();
         private static bool _initialized;
         
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Initialize()
         {
+            if (_types == null)
+            {
+                Debug.LogError(TypesNull);
+                return;
+            }
+            
             if (_initialized)
                 return;
 
@@ -48,24 +56,15 @@ namespace Kekser.PowerSingleton
         //TODO: Add IL Weaving to automatically call this method
         private static void LookUpAttributes()
         {
-            Assembly[] types = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (Assembly assembly in types)
+            foreach (Type type in _types)
             {
-                if (!assembly.FullName.StartsWith("Assembly-CSharp"))
-                    continue;
-
-                foreach (Type type in assembly.GetTypes())
+                object[] attributes = type.GetCustomAttributes(typeof(PowerSingletonAttribute), false);
+                if (attributes.Length <= 0) continue;
+                
+                for (int i = 0; i < attributes.Length; i++)
                 {
-                    var attributes = type.GetCustomAttributes(typeof(PowerSingletonAttribute), false);
-                    if (attributes.Length <= 0) continue;
-                    
-                    if (!type.IsSubclassOf(typeof(MonoBehaviour)))
-                    {
-                        Debug.LogErrorFormat(PowerSingletonNoMonoBehaviour, type);
+                    if (!(attributes[i] is PowerSingletonAttribute attribute))
                         continue;
-                    }
-                    
-                    PowerSingletonAttribute attribute = (PowerSingletonAttribute) attributes[0];
                     Type attributeType = attribute.Type ?? type;
                     _powerSingletons.TryAddToDictionary(attributeType, new List<PowerSingletonData>());
                     _powerSingletons[attributeType].Add(new PowerSingletonData
@@ -99,6 +98,12 @@ namespace Kekser.PowerSingleton
             Object instance = null;
             if (!_powerSingletons.ContainsKey(type))
             {
+                if (!type.IsSubclassOf(typeof(MonoBehaviour)))
+                {
+                    Debug.LogErrorFormat(NoPowerSingletonAttribute, type);
+                    return null;
+                }
+                
                 instance = Object.FindObjectOfType(type);
                 if (instance == null)
                 {
