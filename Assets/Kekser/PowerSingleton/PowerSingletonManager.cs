@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using Kekser.PowerSingleton.Attributes;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -12,8 +11,6 @@ namespace Kekser.PowerSingleton
 {
     public static class PowerSingletonManager
     {
-        private const string AssembliesToIgnoreRegex = "^Unity|^UnityEngine|^mscorlib|^System|^Mono";
-        
         private const string PowerSingletonNoMonoBehaviour = "PowerSingletonManager: Type {0} is not a MonoBehaviour";
         private const string NoPowerSingletonAttribute = "PowerSingletonManager: No PowerSingletonAttribute for type {0}, and no instance in scene";
         private const string NoPowerSingletonAttributeButInstanceInScene = "PowerSingletonManager: No PowerSingletonAttribute for type {0}, but found instance in scene";
@@ -41,7 +38,7 @@ namespace Kekser.PowerSingleton
             }
             AutoCreate();
         }
-        
+
         private static bool TryAddToDictionary<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue value)
         {
             if (dictionary.ContainsKey(key))
@@ -67,15 +64,18 @@ namespace Kekser.PowerSingleton
         //TODO: Add IL Weaving to automatically call this method
         private static void LookUpAttributes()
         {
-            Assembly[] types = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (Assembly assembly in types)
+            string definedIn = typeof(PowerSingletonAttribute).Assembly.GetName().Name;
+            
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                if (Regex.IsMatch(assembly.FullName, AssembliesToIgnoreRegex))
+                if (assembly.GlobalAssemblyCache 
+                    || assembly.GetName().Name != definedIn 
+                    && assembly.GetReferencedAssemblies().All(assemblyName => assemblyName.Name != definedIn))
                     continue;
 
                 foreach (Type type in assembly.GetTypes())
                 {
-                    var attributes = type.GetCustomAttributes(typeof(PowerSingletonAttribute), false);
+                    object[] attributes = type.GetCustomAttributes(typeof(PowerSingletonAttribute), false);
                     if (attributes.Length == 0 || !CheckType(type))
                         continue;
                     
