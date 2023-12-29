@@ -26,6 +26,7 @@ namespace Kekser.PowerSingleton
         
         private static readonly Dictionary<Type, List<PowerSingletonData>> _powerSingletons = new Dictionary<Type, List<PowerSingletonData>>();
         private static bool _initialized;
+        private static bool _quitting;
         
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void Initialize()
@@ -34,9 +35,15 @@ namespace Kekser.PowerSingleton
             {
                 LookUpAttributes();
                 SceneManager.activeSceneChanged += (arg0, arg1) => Initialize();
+                Application.quitting += Quitting;
                 _initialized = true;
             }
             AutoCreate();
+        }
+        
+        private static void Quitting()
+        {
+            _quitting = true;
         }
 
         private static bool TryAddToDictionary<TKey, TValue>(this Dictionary<TKey, TValue> dictionary, TKey key, TValue value)
@@ -105,6 +112,9 @@ namespace Kekser.PowerSingleton
 
         public static Object Get(Type type)
         {
+            if (_quitting)
+                return null;
+            
             Object instance = null;
             if (!_powerSingletons.ContainsKey(type))
             {
