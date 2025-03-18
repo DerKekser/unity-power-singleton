@@ -9,10 +9,13 @@ namespace Kekser.PowerSingleton
         private static Object _rawInstance { get; set; }
         private static T _instance { get; set; }
 
-        public static T Instance {
+        public static bool HasValue => _rawInstance != null;
+        
+        public static T Instance 
+        {
             get
             {
-                if (_rawInstance != null) return _instance;
+                if (HasValue) return _instance;
                 Bind(PowerSingletonManager.Get(typeof(T)));
                 return _instance;
             }
