@@ -39,6 +39,7 @@ namespace Kekser.PowerSingleton
                 _initialized = true;
             }
             AutoCreate();
+            AutoLookUp();
         }
         
         private static void Quitting()
@@ -100,6 +101,15 @@ namespace Kekser.PowerSingleton
                 }
             }
         }
+        
+        private static void Bind(Type type, Object instance)
+        {
+            Type singleType = typeof(Single<>).MakeGenericType(type);
+            MethodInfo bindMethod = singleType.GetMethod("Bind");
+            if (bindMethod == null)
+                return;
+            bindMethod.Invoke(null, new object[] {instance});
+        }
 
         private static void AutoCreate()
         {
@@ -107,6 +117,25 @@ namespace Kekser.PowerSingleton
             {
                 if (powerSingleton.Value.Any(data => data.Creation == PowerSingletonCreation.Always))
                     Get(powerSingleton.Key);
+            }
+        }
+
+        private static void AutoLookUp()
+        {
+            foreach (KeyValuePair<Type, List<PowerSingletonData>> powerSingleton in _powerSingletons)
+            {
+                Type singleType = typeof(Single<>).MakeGenericType(powerSingleton.Key);
+                PropertyInfo hasValueProperty = singleType.GetProperty("HasValue");
+                
+                if (hasValueProperty == null)
+                    continue;
+                if ((bool) hasValueProperty.GetValue(null))
+                    continue;
+                Object instance = null;
+                powerSingleton.Value.FirstOrDefault(psData => TryToFindObjectOfType(psData.Type, out instance));
+                if (instance == null)
+                    continue;
+                Bind(powerSingleton.Key, instance);
             }
         }
 
@@ -145,6 +174,7 @@ namespace Kekser.PowerSingleton
             
             if (data.DontDestroyOnLoad)
                 Object.DontDestroyOnLoad(instance);
+            Bind(type, instance);
             return instance;
         }
     }
